@@ -8,7 +8,6 @@ import Modal from '@mui/material/Modal';
 import Grid from "@mui/material/Grid";
 import Box from '@mui/material/Box';
 
-import Textarea from '@mui/joy/Textarea';
 import ReactDOM from 'react-dom';
 import './index.css'
 import { useLayoutEffect } from 'react';
