@@ -1,0 +1,55 @@
+
+.assetdetail{
+    
+    margin:10px auto;
+}
+
+.detailtitle{
+    font-size:small;
+    color:cadetblue;
+    font-weight: bolder;
+    margin-left:3px;
+}
+
+.detailinfo{
+    font-size:medium;
+    color:darkslategrey;
+    font-weight: bolder;
+}
+
+.title{
+
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    font-weight: bolder;
+    font-size: medium;
+    color:teal;
+    justify-content: center;
+    margin-top:10px;
+    margin-left:3px;
+    align-items: center;
+    text-align: center;
+}
+
+.editasset{
+
+    padding:3px 3px;
+    background-color:white;
+    border-radius:2px;
+    justify-content:center;
+}
+
+.adhead{
+    display:flex;
+    justify-content: space-evenly;
+}
+
+.adleft{
+    
+}
+
+.adright{
+}
+
+.teal{
+    color:teal;
+}

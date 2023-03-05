@@ -1,0 +1,74 @@
+.FilterBlock{
+    display:flex;
+    box-shadow: 2px 2px 2px 2px teal;
+    -webkit-box-shadow: 2px 2px 2px 2px cadetblue;
+    -moz-box-shadow: 2px 2px 2px 2px rgb(15, 126, 177);
+    height:80px;
+    margin:20px auto;
+    border-radius:25px;
+    padding: 20px 20px;
+    justify-content:space-around;
+    background: white;
+}
+.FilterCategory{
+    display:flex;
+    flex-direction: column;
+    flex:2;
+}
+
+.ml-1{
+    margin-left:10px;
+}
+
+
+.FilterCategory2{
+    display:flex;
+}
+.FilterDropdown{
+    min-width:250px;
+    height:50px;
+    padding: 5px 5px;
+    margin: 5px auto;
+    border-radius: 2px;
+    border : 1px solid white;
+    
+}
+
+.FilterBlockOption3 {
+    min-width:250px;
+    height:50px;
+    padding: 5px 5px;
+    margin: 5px auto;
+  
+}
+
+@media screen and (max-width:478px){
+    .FilterBlock{
+        display:flex;
+        box-shadow: 2px 2px 2px 2px teal;
+        -webkit-box-shadow: 2px 2px 2px 2px cadetblue;
+        -moz-box-shadow: 2px 2px 2px 2px rgb(15, 126, 177);
+        height:200px;
+        margin:20px auto;
+        border-radius:25px;
+        padding: 20px 20px;
+        justify-content:space-around;
+        background: white;
+    }
+}
+
+
+@media screen and (max-width:720px){
+    .FilterBlock{
+        display:flex;
+        box-shadow: 2px 2px 2px 2px teal;
+        -webkit-box-shadow: 2px 2px 2px 2px cadetblue;
+        -moz-box-shadow: 2px 2px 2px 2px rgb(15, 126, 177);
+        height:200px;
+        margin:20px auto;
+        border-radius:25px;
+        padding: 20px 20px;
+        justify-content:space-around;
+        background: white;
+    }
+}

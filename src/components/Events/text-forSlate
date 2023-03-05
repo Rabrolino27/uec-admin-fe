@@ -1,0 +1,447 @@
+
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import {MDBDataTableV5} from 'mdbreact';
+import SuiBox from 'components/SuiBox'
+import DashboardLayout from 'examples/LayoutContainers/DashboardLayout'
+import DashboardNavbar from 'examples/Navbars/DashboardNavbar'
+import Modal from '@mui/material/Modal';
+import { Button, Card, TextField, TextareaAutosize } from "@mui/material";
+import Grid from "@mui/material/Grid";
+import Box from '@mui/material/Box';
+import axios from 'axios';
+import { url } from 'api';
+import Textarea from '@mui/joy/Textarea';
+import ReactDOM from 'react-dom';
+import { withHistory } from 'slate-history'
+import { Icon, Toolbar } from '../component.tsx'
+import isHotkey from 'is-hotkey'
+import { Editable, withReact, useSlate, Slate } from 'slate-react'
+import {
+  Editor,
+  Transforms,
+  createEditor,
+  Descendant,
+  Element as SlateElement,
+} from 'slate'
+import './index.css'
+import { useLayoutEffect } from 'react';
+import "datatables.net-dt/js/dataTables.dataTables"
+import "datatables.net-dt/css/jquery.dataTables.min.css"
+import $ from 'jquery'; 
+
+const Events = () => {
+  const HOTKEYS = {
+    'mod+b': 'bold',
+    'mod+i': 'italic',
+    'mod+u': 'underline',
+    'mod+`': 'code',
+  }
+  
+  const LIST_TYPES = ['numbered-list', 'bulleted-list']
+  const TEXT_ALIGN_TYPES = ['left', 'center', 'right', 'justify']
+
+  const [events, SetEvents] = useState([]);
+  const [datatable, setDatatable] = React.useState({});
+  const [data, SetData] = useState(false);
+  const [NewEvent, AddEvent] = useState({
+    name : '',
+    details: '',
+    date: '',
+    image: ''
+    });
+  // const [editorState, setEditorState] = React.useState(
+  //   EditorState.createEmpty()
+  // );
+ 
+  // const editor = React.useRef(null);
+ 
+  // function focusEditor() {
+  //   editor.current.focus();
+  // }
+
+  const renderElement = useCallback(props => <Element {...props} />, [])
+  const renderLeaf = useCallback(props => <Leaf {...props} />, [])
+  const editor = useMemo(() => withHistory(withReact(createEditor())), [])
+
+  const [formSubmit, ChangeForm] = useState(false);
+ 
+    useEffect((e) => {
+        async function fetchData(){
+        await axios.get(`${url}/events`).then((response) => {
+          SetEvents(response.data.data);
+        }).catch((err) => {console.log(err);})
+      }
+        fetchData();
+        
+    
+      }, [formSubmit]);  
+    
+      $(document).ready(function () {
+        setTimeout(function(){
+        $('#example').DataTable();
+         } ,1000);
+    });
+
+    const [open, setOpen] = useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
+   
+    const handleEdit = value => async() => {
+        await AddEvent({...NewEvent,
+          id: value.id, name: value.name, details : value.details, date: value.date});
+          console.log(NewEvent)
+          handleOpen();
+      }
+
+
+    const handleDelete = value => async() => {
+      // e.preventDefault();
+      console.log(value)
+    if (confirm("Delete Event " + value) == true){
+      await axios.get(`${url}/events/delete/${value}`).then((response) => {
+        if(response.data.status == 200){
+          alert('Event Deleted successfully')
+          ChangeForm(!formSubmit);
+          window.location.reload(false)
+        }
+      }).catch((err) => {console.log(err);})
+    }
+ }
+   const handleSubmit = async(e) => {
+    e.preventDefault();
+
+    console.log(editor);
+    // await axios.post(`${url}/events/create`, NewEvent).then((response) => {
+    //   if(response.data.status == 200){
+    //     alert('Event Saved successfully')
+    //     ChangeForm(!formSubmit);
+    //     window.location.reload(false)
+    //   }
+    // }).catch((err) => {console.log(err);})
+
+   }
+              const modalStyle = {
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 900,
+                bgcolor: 'background.paper',
+                border: '2px solid white',
+                boxShadow: 24,
+                p: 4,
+              };
+              const editorStyle = {
+                bgcolor: 'background.paper',
+                border: '0.5px solid gray',
+                boxShadow: 24,
+                margin: '10px 0 10px 0',
+                borderRadius: '5px'
+              };
+             
+  const printPage = () => {
+      var getFullContent = document.body.innerHTML;
+      var printsection = document.getElementById('hello').innerHTML;
+      document.body.innerHTML = printsection;
+      window.print();
+      document.body.innerHTML = getFullContent;
+    }
+  
+    const toggleBlock = (editor, format) => {
+      const isActive = isBlockActive(
+        editor,
+        format,
+        TEXT_ALIGN_TYPES.includes(format) ? 'align' : 'type'
+      )
+      const isList = LIST_TYPES.includes(format)
+    
+      Transforms.unwrapNodes(editor, {
+        match: n =>
+          !Editor.isEditor(n) &&
+          SlateElement.isElement(n) &&
+          LIST_TYPES.includes(n.type) &&
+          !TEXT_ALIGN_TYPES.includes(format),
+        split: true,
+      })
+      let newProperties: Partial<SlateElement>
+      if (TEXT_ALIGN_TYPES.includes(format)) {
+        newProperties = {
+          align: isActive ? undefined : format,
+        }
+      } else {
+        newProperties = {
+          type: isActive ? 'paragraph' : isList ? 'list-item' : format,
+        }
+      }
+      Transforms.setNodes<SlateElement>(editor, newProperties)
+    
+      if (!isActive && isList) {
+        const block = { type: format, children: [] }
+        Transforms.wrapNodes(editor, block)
+      }
+    }
+    
+    const toggleMark = (editor, format) => {
+      const isActive = isMarkActive(editor, format)
+    
+      if (isActive) {
+        Editor.removeMark(editor, format)
+      } else {
+        Editor.addMark(editor, format, true)
+      }
+    }
+    
+    const isBlockActive = (editor, format, blockType = 'type') => {
+      const { selection } = editor
+      if (!selection) return false
+    
+      const [match] = Array.from(
+        Editor.nodes(editor, {
+          at: Editor.unhangRange(editor, selection),
+          match: n =>
+            !Editor.isEditor(n) &&
+            SlateElement.isElement(n) &&
+            n[blockType] === format,
+        })
+      )
+    
+      return !!match
+    }
+    
+    const isMarkActive = (editor, format) => {
+      const marks = Editor.marks(editor)
+      return marks ? marks[format] === true : false
+    }
+    
+   
+
+    const MarkButton = ({ format, icon }) => {
+      const editor = useSlate()
+      return (
+        <Button
+          active={isMarkActive(editor, format)}
+          onMouseDown={event => {
+            event.preventDefault()
+            toggleMark(editor, format)
+          }}
+        >
+          <Icon>{icon}</Icon>
+        </Button>
+      )
+    }
+    
+    const BlockButton = ({ format, icon }) => {
+      const editor = useSlate()
+      return (
+        <Button
+          active={isBlockActive(
+            editor,
+            format,
+            TEXT_ALIGN_TYPES.includes(format) ? 'align' : 'type'
+          )}
+          onMouseDown={event => {
+            event.preventDefault()
+            toggleBlock(editor, format)
+          }}
+        >
+          <Icon>{icon}</Icon>
+        </Button>
+      )
+    }
+    const initialValue: Descendant[] = [
+      {
+        type: 'paragraph',
+        children: [
+          { text: 'This is editable ' },
+          { text: 'rich', bold: true },
+          { text: ' text, ' },
+          { text: 'much', italic: true },
+          { text: ' better than a ' },
+          { text: '<textarea>', code: true },
+          { text: '!' },
+        ],
+      },
+      {
+        type: 'paragraph',
+        children: [
+          {
+            text:
+              "Since it's rich text, you can do things like turn a selection of text ",
+          },
+          { text: 'bold', bold: true },
+          {
+            text:
+              ', or add a semantically rendered block quote in the middle of the page, like this:',
+          },
+        ],
+      },
+      {
+        type: 'block-quote',
+        children: [{ text: 'A wise quote.' }],
+      },
+      {
+        type: 'paragraph',
+        align: 'center',
+        children: [{ text: 'Try it out for yourself!' }],
+      },
+    ]
+    
+    const Element = ({ attributes, children, element }) => {
+      const style = { textAlign: element.align }
+      switch (element.type) {
+        case 'block-quote':
+          return (
+            <blockquote style={style} {...attributes}>
+              {children}
+            </blockquote>
+          )
+        case 'bulleted-list':
+          return (
+            <ul style={style} {...attributes}>
+              {children}
+            </ul>
+          )
+        case 'heading-one':
+          return (
+            <h1 style={style} {...attributes}>
+              {children}
+            </h1>
+          )
+        case 'heading-two':
+          return (
+            <h2 style={style} {...attributes}>
+              {children}
+            </h2>
+          )
+        case 'list-item':
+          return (
+            <li style={style} {...attributes}>
+              {children}
+            </li>
+          )
+        case 'numbered-list':
+          return (
+            <ol style={style} {...attributes}>
+              {children}
+            </ol>
+          )
+        default:
+          return (
+            <p style={style} {...attributes}>
+              {children}
+            </p>
+          )
+      }
+    }
+    const Leaf = ({ attributes, children, leaf }) => {
+      if (leaf.bold) {
+        children = <strong>{children}</strong>
+      }
+    
+      if (leaf.code) {
+        children = <code>{children}</code>
+      }
+    
+      if (leaf.italic) {
+        children = <em>{children}</em>
+      }
+    
+      if (leaf.underline) {
+        children = <u>{children}</u>
+      }
+    
+      return <span {...attributes}>{children}</span>
+    }
+       
+   
+      return (
+        <DashboardLayout>
+     
+        <SuiBox position="relative">
+         <DashboardNavbar  />
+       <SuiBox>
+         
+         <Card>
+       
+       <Grid item xs={12} md={12} xl={12}>
+       <div className="table-top">
+            <div className="mg-1 pd-1" onClick={printPage}> <i className="fa fa-print" > </i> </div> 
+            <div className="mg-1 border pd-1" onClick={handleOpen}>  <span className=""><i className="fa fa-plus-circle" > </i> <span className="promaro">Add to Eventss </span> </span></div>
+   </div>
+            <Card id="hello" >
+     
+            <table id="example" class="table table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Email</th>
+              <th>Username</th>
+              <th>action</th>
+            </tr>
+          </thead>
+          <tbody>
+          {events.map((result) => {
+            return (
+             
+                 <tr>
+                  <td>{result.name}</td>
+                  <td>{result.date}</td>
+                  <td>{result.details}</td>
+                  <td><><Button  onClick={handleEdit(result)} sx={{backgroundColor: '#5cb85c', color : '#000000', height: '40px', marginLeft: '20px'}}> Edit</Button> <Button  onClick={handleDelete(result.id)} sx={{backgroundColor: '#000000', color : '#ff0000', height: '40px', marginLeft: '20px'}}> Delete</Button> </> </td>
+                </tr>
+             
+            )
+          })}
+           
+            
+          </tbody>
+        </table>
+        </Card>
+        </Grid>
+        </Card>
+
+
+</SuiBox>    
+</SuiBox>
+
+    <Modal open={open}  onClose={handleClose} aria-labelledby="modal-modal-title"  aria-describedby="modal-modal-description" >
+        <Box sx={modalStyle} >
+            <TextField sx={{minWidth:'400px'}}  helperText = "Event Name" value={NewEvent.name} onChange={(e) => {AddEvent({...NewEvent, name : e.target.value})}} />
+            {/* <Textarea   helperText = "Event Details" value={NewEvent.details} onChange={(e) => {AddEvent({...NewEvent, details : e.target.value})}} /> */}
+            <div  style={editorStyle}>
+            <Slate editor={editor} value={NewEvent.details}>
+      <Toolbar>
+        <MarkButton format="bold" icon="format_bold" />
+        <MarkButton format="italic" icon="format_italic" />
+        <MarkButton format="underline" icon="format_underlined" />
+        <MarkButton format="code" icon="code" />
+        <BlockButton format="heading-one" icon="looks_one" />
+        <BlockButton format="heading-two" icon="looks_two" />
+        <BlockButton format="block-quote" icon="format_quote" />
+        <BlockButton format="numbered-list" icon="format_list_numbered" />
+        <BlockButton format="bulleted-list" icon="format_list_bulleted" />
+        <BlockButton format="left" icon="format_align_left" />
+        <BlockButton format="center" icon="format_align_center" />
+        <BlockButton format="right" icon="format_align_right" />
+        <BlockButton format="justify" icon="format_align_justify" />
+      </Toolbar>
+      <Editable
+        renderElement={renderElement}
+        renderLeaf={renderLeaf}
+        placeholder="Enter some rich text…"
+        spellCheck
+        autoFocus
+      />
+    </Slate>
+            </div>
+            <TextField sx={{minWidth:'400px'}} type="date"  helperText = "Event Date" value={NewEvent.date} onChange={(e) => {AddEvent({...NewEvent, date : e.target.value})}} />
+            <TextField type="file" sx={{minWidth:'400px'}}  helperText = "Event Image" value={NewEvent.image} onChange={(e) => {AddEvent({...NewEvent, image : e.target.value})}} />
+            <Button sx={{backgroundColor: '#42ba96', color : '#FFFFFF', height: '40px', marginLeft: '20px', marginTop: '25px', width: '250px' }} onClick = {(e) => { handleSubmit(e); handleClose();}}> Submit</Button>
+        </Box>
+    </Modal>
+</DashboardLayout>
+      )
+    }
+
+export default Events

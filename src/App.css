@@ -1,0 +1,16 @@
+.stepPadding{
+    padding: 20px 20px;
+    margin-bottom: 4s00px;
+}
+
+table {
+    font-size: 15px;
+    color:rgb(199, 31, 31);
+    font-weight: lighter;
+}
+
+.paginate_button {
+    background-color: rgb(27, 141, 141);
+    color: black;
+    
+}
